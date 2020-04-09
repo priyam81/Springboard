@@ -72,6 +72,26 @@ Include in your output the name of the court, and the name of the member
 formatted as a single column. Ensure no duplicate data, and order by
 the member name. */
 
+/* Query can be modified further by putting where in join itself.
+SELECT f.name AS facility_name,
+       CONCAT(m.firstname,' ',m.surname) AS member_name
+FROM `Members` m
+JOIN `Bookings` b ON m.memid = b.memid
+JOIN `Facilities` f
+WHERE b.facid IN (0, 1)
+GROUP BY facility_name
+ORDER BY member_name;
+*/
+
+SELECT CASE WHEN b.facid = 0 THEN 'Tennis Court 1'
+	WHEN b.facid = 1 THEN 'Tennis Court 2' 
+        ELSE NULL END AS tennis_court,
+       CONCAT(m.firstname,' ',m.surname) AS member_name
+FROM `Members` m
+JOIN `Bookings` b ON ( m.memid = b.memid AND b.facid IN (0, 1) )
+GROUP BY tennis_court, member_name
+ORDER BY member_name;
+
 
 /* Q8: How can you produce a list of bookings on the day of 2012-09-14 which
 will cost the member (or guest) more than $30? Remember that guests have
@@ -80,10 +100,59 @@ the guest user's ID is always 0. Include in your output the name of the
 facility, the name of the member formatted as a single column, and the cost.
 Order by descending cost, and do not use any subqueries. */
 
+SELECT f.name AS facility_name,
+       CONCAT(m.firstname,' ',m.surname) AS member_name,
+       CASE WHEN m.memid = 0 THEN f.guestcost * b.slots
+       ELSE f.membercost * b.slots END AS cost
+FROM `Members` m, `Bookings` b, `Facilities` f
+WHERE (CASE WHEN m.memid = 0 THEN f.guestcost * b.slots
+       ELSE f.membercost * b.slots END ) > 30 AND b.starttime = '2012-09-14';
+
 
 /* Q9: This time, produce the same result as in Q8, but using a subquery. */
 
+/* This query didn't workout, usage of cost column in join fn. didn't workout.
+SELECT f.name AS facility_name,
+       CONCAT(m.firstname,' ',m.surname) AS member_name,
+       CASE WHEN m.memid = 0 THEN f.guestcost * b.slots
+       ELSE f.membercost * b.slots END AS cost
+FROM `Members` m 
+JOIN `Bookings` b ON ( m.memid = b.memid AND b.starttime LIKE '2012-09-14%' )
+JOIN `Facilities` f ON ( b.facid = f.facid AND cost > 30); 
+*/
+
+/* This query worked, but seemed inefficient. 
+SELECT f.name AS facility_name,
+       CONCAT(m.firstname,' ',m.surname) AS member_name,
+       CASE WHEN m.memid = 0 THEN f.guestcost * b.slots
+       ELSE f.membercost * b.slots END AS cost
+FROM `Members` m
+JOIN `Bookings` b ON ( m.memid = b.memid AND b.starttime LIKE '2012-09-14%' )
+JOIN `Facilities` f ON ( b.facid = f.facid AND (CASE WHEN m.memid = 0 THEN f.guestcost * b.slots
+       ELSE f.membercost * b.slots END) > 30);
+*/
+
+SELECT f.name AS facility_name,
+       CONCAT(m.firstname,' ',m.surname) AS member_name,
+       CASE WHEN m.memid = 0 THEN f.guestcost * b.slots
+       ELSE f.membercost * b.slots END AS cost
+FROM `Members` m
+JOIN `Bookings` b ON ( m.memid = b.memid AND b.starttime LIKE '2012-09-14%' )
+JOIN `Facilities` f ON ( b.facid = f.facid )
+GROUP BY facility_name, cost
+HAVING cost > 30
+ORDER BY cost;
 
 /* Q10: Produce a list of facilities with a total revenue less than 1000.
 The output of facility name and total revenue, sorted by revenue. Remember
 that there's a different cost for guests and members! */
+
+SELECT f.name AS facility_name,
+       SUM(CASE WHEN m.memid = 0 THEN f.guestcost * b.slots
+       ELSE f.membercost * b.slots END) AS revenue
+FROM `Members` m
+JOIN `Bookings` b ON m.memid = b.memid 
+JOIN `Facilities` f ON b.facid = f.facid 
+GROUP BY facility_name
+HAVING revenue < 1000
+ORDER BY revenue;
