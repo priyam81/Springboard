@@ -1,0 +1,25 @@
+Next steps:=
+
+1. importing the packages
+2. reading as csv file
+3. shape of the it, rows and coluns
+4. describe the data
+5. Identify NULL in the columns; Null to be showns as Histograms, numbers and %age numbers.
+6. outliers , box plots for each nunerical value
+9. heat map for cotrerelation matrics.
+
+
+======================================
+
+
+WOrd document
+
+1. cleaning steps
+2. deal with missing values
+3. outliers dealing with them
+
+===========================================
+
+LI
+
+Currently undergoing a 6 month intensive data science career track that includes 650+ hours of hands-on curriculum, with 1:1 industry expert mentor oversight, and completion of 2 in-depth capstone projects. Mastering skills in Python, SQL, data analysis, data visualization, hypothesis testing, and machine learning. 
